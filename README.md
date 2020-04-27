@@ -34,3 +34,5 @@ while(!end)
   sven_set_update(sd,0);
 }
 ```
+
+As of today, the `sven_set_update` isn't very useful but I'm plannig to do something similar to SFML with all drawing operations staged and then a function to update the display all at once.

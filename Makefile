@@ -11,17 +11,11 @@ poly.out: main.o sven.o
 	$(CC) $(CFLAGS) $^ -o $@
 
 
-main.o: main.c sven.h
-	$(CC) $(CFLAGS) -c $< -o $@
+main.o: src/main.c include/sven.h
+	$(CC) $(CFLAGS) -c $< -o $@ -I./include
 
-board.o: board.c sven.h
-	$(CC) $(CFLAGS) -c $< -o $@
-
-sven.o: sven.c sven.h
-	$(CC) $(CFLAGS) -c $< -o $@
+sven.o: src/sven.c include/sven.h
+	$(CC) $(CFLAGS) -c $< -o $@ -I./include
 
 clean:
 	rm -f *.o *.out
-
-edit:
-	vim -p Makefile main.c sven.h sven.c

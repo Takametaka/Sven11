@@ -1,9 +1,17 @@
+#include "collections.h"
 #include "sven.h"
 
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 
-SvenDisplay *sven_open(int sizeX, int sizeY, char *title)
+/**
+ *  \brief opens a window
+ *  \param sizeX the width of the window
+ *  \param sizeY the height of the window
+ *  \param title the title of the window
+ *  \return the allocated window
+ */
+SvenDisplay *svenWindow_open(int sizeX, int sizeY, char *title)
 {
     SvenDisplay *sd = malloc(sizeof(SvenDisplay));
     if( NULL == sd )
@@ -62,7 +70,6 @@ SvenDisplay *sven_open(int sizeX, int sizeY, char *title)
     int g = (white_pixel & 0x00FF00) >> 8;
     int b = (white_pixel & 0x0000FF);
     sd->currentColor = (SvenColor){r,g,b};
-    sd->update_display = 1;
     
     /* wait for the window to be displayed */
     XEvent xev;
@@ -76,7 +83,11 @@ SvenDisplay *sven_open(int sizeX, int sizeY, char *title)
     return sd;
 }
 
-void sven_close(SvenDisplay *sd)
+/**
+ *  \brief closes and frees the window
+ *  \param sd the window to close and free
+ */
+void svenWindow_close(SvenDisplay *sd)
 {
     if( sd == NULL ) return;
     
@@ -86,7 +97,8 @@ void sven_close(SvenDisplay *sd)
     free(sd);
 }
 
-void _sven_switch_color(SvenDisplay *sd, SvenColor color)
+//inner
+void _switch_color(SvenDisplay *sd, SvenColor color)
 {
     if( sd == NULL ) return;
 
@@ -114,9 +126,9 @@ void _sven_switch_color(SvenDisplay *sd, SvenColor color)
     XSetForeground(sd->display, sd->gc, xcolor.pixel);
 }
 
-void sven_fill_color(SvenDisplay *sd, SvenColor color)
+void svenWindow_fillColor(SvenDisplay *sd, SvenColor color)
 {    
-    _sven_switch_color(sd,color);
+    _switch_color(sd,color);
 
     unsigned int w, h, b, d;
     int x, y;
@@ -126,36 +138,35 @@ void sven_fill_color(SvenDisplay *sd, SvenColor color)
     XFillRectangle(sd->display, sd->window, sd->gc, 0, 0, w, h);
 }
 
-
-void sven_draw_pixel(SvenDisplay *sd, SvenVect2 pixel, SvenColor color)
+void svenWindow_drawPixel(SvenDisplay *sd, SvenVect2 pixel, SvenColor color)
 {
-    _sven_switch_color(sd,color);
+    _switch_color(sd,color);
     XDrawPoint(sd->display, sd->window, sd->gc, pixel.x, pixel.y);
 }
 
-void sven_draw_line(SvenDisplay *sd, SvenVect2 p1, SvenVect2 p2, SvenColor color)
+void svenWindow_drawLine(SvenDisplay *sd, SvenVect2 p1, SvenVect2 p2, SvenColor color)
 {
-    _sven_switch_color(sd,color);
+    _switch_color(sd,color);
     XDrawLine(sd->display, sd->window, sd->gc, p1.x, p1.y, p2.x, p2.y);
 }
 
-void sven_draw_polygon(SvenDisplay *sd, SvenVect2 p[], int nbPoints, SvenColor color)
+void svenWindow_drawPolygon(SvenDisplay *sd, SvenVect2 p[], int nbPoints, SvenColor color)
 {
     if(nbPoints < 2) 
         return;
 
-    _sven_switch_color(sd,color);
+    _switch_color(sd,color);
     for(int i = 0; i < nbPoints - 1; i++)
         XDrawLine(sd->display, sd->window, sd->gc, p[i].x, p[i].y, p[i+1].x, p[i+1].y);
     XDrawLine(sd->display, sd->window, sd->gc, p[nbPoints - 1].x, p[nbPoints - 1].y, p[0].x, p[0].y);
 }
 
-void sven_fill_polygon(SvenDisplay *sd, SvenVect2 p[], int nbPoints, SvenColor color)
+void svenWindow_fillPolygon(SvenDisplay *sd, SvenVect2 p[], int nbPoints, SvenColor color)
 {
     if(nbPoints < 2) 
         return;
 
-    _sven_switch_color(sd,color);
+    _switch_color(sd,color);
 
     XPoint pts[nbPoints];
     for(int i = 0; i < nbPoints; i++)
@@ -166,9 +177,9 @@ void sven_fill_polygon(SvenDisplay *sd, SvenVect2 p[], int nbPoints, SvenColor c
     XFillPolygon(sd->display,sd->window,sd->gc,pts,nbPoints,Complex,CoordModeOrigin);
 }
 
-void sven_draw_rectangle(SvenDisplay *sd, SvenVect2 p1, SvenVect2 p2, SvenColor color)
+void svenWindow_drawRectangle(SvenDisplay *sd, SvenVect2 p1, SvenVect2 p2, SvenColor color)
 {
-    _sven_switch_color(sd,color);
+    _switch_color(sd,color);
     int x = (p1.x < p2.x ? p1.x : p2.x);
     int y = (p1.y < p2.y ? p1.y : p2.y);
     int w = (p1.x < p2.x ? p2.x - p1.x : p1.x - p2.x);
@@ -176,9 +187,9 @@ void sven_draw_rectangle(SvenDisplay *sd, SvenVect2 p1, SvenVect2 p2, SvenColor 
     XDrawRectangle(sd->display, sd->window, sd->gc, x, y, w, h);
 }
 
-void sven_fill_rectangle(SvenDisplay *sd, SvenVect2 p1, SvenVect2 p2, SvenColor color)
+void svenWindow_fillRectangle(SvenDisplay *sd, SvenVect2 p1, SvenVect2 p2, SvenColor color)
 {
-    _sven_switch_color(sd,color);
+    _switch_color(sd,color);
     int x = (p1.x < p2.x ? p1.x : p2.x);
     int y = (p1.y < p2.y ? p1.y : p2.y);
     int w = (p1.x < p2.x ? p2.x - p1.x : p1.x - p2.x);
@@ -186,14 +197,14 @@ void sven_fill_rectangle(SvenDisplay *sd, SvenVect2 p1, SvenVect2 p2, SvenColor 
     XFillRectangle(sd->display, sd->window, sd->gc, x, y, w, h);
 }
 
-int sven_event_pending(SvenDisplay *sd)
+int svenWindow_eventPending(SvenDisplay *sd)
 {
     if(sd == NULL) return 0;
     //wait for events only if there are some events to wait, of if there is no change in the display
-    return XPending(sd->display) || !sd->update_display;
+    return XPending(sd->display);
 }
 
-SvenEvent sven_get_event(SvenDisplay *sd)
+SvenEvent svenWindow_getEvent(SvenDisplay *sd)
 {
     if(sd == NULL)
     {
@@ -210,20 +221,20 @@ SvenEvent sven_get_event(SvenDisplay *sd)
     switch(xev.type)
     {
         case KeyPress :
-            event.type = KEY_PRESSED;
+            event.type = KEY_DOWN;
             event.data.key = xev.xkey.keycode;
             break;
         case KeyRelease :
-            event.type = KEY_RELEASED;
+            event.type = KEY_UP;
             event.data.key = xev.xkey.keycode;
             break;
         case ButtonPress :
-            event.type = MOUSE_PRESSED;
-            event.data.clic = (SvenVect2){xev.xbutton.x,xev.xbutton.y};
+            event.type = MOUSE_DOWN;
+            event.data.mouse.coordinates = (SvenVect2){xev.xbutton.x,xev.xbutton.y};
             break;
         case ButtonRelease :
-            event.type = MOUSE_RELEASED;
-            event.data.clic = (SvenVect2){xev.xbutton.x,xev.xbutton.y};
+            event.type = MOUSE_UP;
+            event.data.mouse.coordinates = (SvenVect2){xev.xbutton.x,xev.xbutton.y};
             break;
         case Expose :
             event.type = EXPOSE; 
@@ -236,11 +247,4 @@ SvenEvent sven_get_event(SvenDisplay *sd)
     }
 
     return event;
-}
-
-void sven_set_update(SvenDisplay *sd, int val)
-{
-    if(sd == NULL)
-        return;
-    sd->update_display = val;
 }
